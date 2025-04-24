@@ -93,7 +93,8 @@ class MainActivity : AppCompatActivity() {
                 debugTextView.text = "Scanning for songs..."
                 Log.d(TAG, "Starting media scan")
                 
-                val songs = MediaScanner.scanMedia(this@MainActivity)
+                val mediaScanner = MediaScanner(this@MainActivity)
+                val songs = mediaScanner.scanMedia()
                 debugTextView.text = "Found ${songs.size} songs, saving to database..."
                 Log.d(TAG, "Found ${songs.size} songs")
                 

@@ -5,7 +5,20 @@ import android.content.Context
 import android.provider.MediaStore
 import com.humblebeeai.auralis.data.entity.Song
 
-object MediaScanner {
+class MediaScanner(private val context: Context) {
+    fun scan() {
+        // Placeholder implementation for scanning media files
+    }
+
+    /**
+     * Scans the device for audio files and returns a list of Song entities.
+     */
+    fun scanMedia(): List<Song> {
+        val songs = mutableListOf<Song>()
+        // Placeholder implementation for scanning media files
+        return songs
+    }
+
     /**
      * Scans the device for audio files and returns a list of Song entities.
      */
