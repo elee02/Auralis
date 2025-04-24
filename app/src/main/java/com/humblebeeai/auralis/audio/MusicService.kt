@@ -2,13 +2,12 @@ package com.humblebeeai.auralis.audio
 
 import android.net.Uri
 import android.os.Bundle
-import com.google.android.exoplayer2.Player
+import androidx.media3.common.Player
 import com.humblebeeai.auralis.data.AppDatabase
 import com.humblebeeai.auralis.data.entity.Song
 import kotlinx.coroutines.runBlocking
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.MediaSession
-import androidx.media3.session.MediaSessionConnector
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import android.app.PendingIntent
@@ -36,8 +35,6 @@ class MusicService : MediaSessionService() {
         session = MediaSession.Builder(this, player)
             .setSessionActivity(activityIntent)
             .build()
-        // attach connector for queue/navigation and init notifications
-        MediaSessionConnector(session)
         // start foreground playback notification
         MusicNotificationManager(this, session)
     }

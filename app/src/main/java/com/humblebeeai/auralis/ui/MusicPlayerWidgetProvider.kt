@@ -12,6 +12,8 @@ import androidx.media3.session.SessionToken
 import androidx.media3.session.MediaController
 import androidx.media3.common.MediaItem
 import com.humblebeeai.auralis.audio.MusicService
+import com.google.common.util.concurrent.ListenableFuture
+import androidx.media3.session.MediaBrowser
 
 class MusicPlayerWidgetProvider : AppWidgetProvider() {
     companion object {
@@ -23,13 +25,21 @@ class MusicPlayerWidgetProvider : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.widget_music_player)
             // get playback state and metadata via MediaController
             val token = SessionToken(context, ComponentName(context, MusicService::class.java))
-            val controller = MediaController.Builder(context, token).build()
-            val mediaItem: MediaItem? = controller.currentMediaItem
+            val controllerFuture: ListenableFuture<MediaController> = MediaController.Builder(context, token).buildAsync()
+            
+            // Try to get the controller immediately or use defaults
+            val controller = try {
+                controllerFuture.get()
+            } catch (e: Exception) {
+                null
+            }
+            
+            val mediaItem: MediaItem? = controller?.currentMediaItem
             val title = mediaItem?.mediaMetadata?.title ?: ""
             val artist = mediaItem?.mediaMetadata?.artist ?: ""
             views.setTextViewText(R.id.textWidgetTitle, title)
             views.setTextViewText(R.id.textWidgetArtist, artist)
-            val icon = if (controller.isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+            val icon = if (controller?.isPlaying == true) R.drawable.ic_pause else R.drawable.ic_play
             views.setImageViewResource(R.id.btnWidgetPlayPause, icon)
             // set pending intents
             val pkg = context.packageName
@@ -57,12 +67,19 @@ class MusicPlayerWidgetProvider : AppWidgetProvider() {
         super.onReceive(context, intent)
         // control playback via MediaController
         val token = SessionToken(context, ComponentName(context, MusicService::class.java))
-        val controller = MediaController.Builder(context, token).build()
-        when (intent.action) {
-            ACTION_PLAY_PAUSE -> if (controller.isPlaying) controller.pause() else controller.play()
-            ACTION_NEXT -> controller.seekToNextMediaItem()
-            ACTION_PREV -> controller.seekToPreviousMediaItem()
+        val controllerFuture: ListenableFuture<MediaController> = MediaController.Builder(context, token).buildAsync()
+        
+        try {
+            val controller = controllerFuture.get()
+            when (intent.action) {
+                ACTION_PLAY_PAUSE -> if (controller.isPlaying) controller.pause() else controller.play()
+                ACTION_NEXT -> controller.seekToNextMediaItem()
+                ACTION_PREV -> controller.seekToPreviousMediaItem()
+            }
+        } catch (e: Exception) {
+            // Handle controller connection error
         }
+        
         // refresh all widgets
         val manager = AppWidgetManager.getInstance(context)
         val cn = ComponentName(context, MusicPlayerWidgetProvider::class.java)

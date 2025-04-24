@@ -1,5 +1,6 @@
 package com.humblebeeai.auralis.audio
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -53,26 +54,26 @@ class MusicNotificationManager(
             }
         })
         .setNotificationListener(object : PlayerNotificationManager.NotificationListener {
-            override fun onNotificationPosted(
-                notificationId: Int,
-                notification: NotificationCompat.Builder,
-                ongoing: Boolean
-            ) {
-                if (ongoing) {
-                    (context as MediaSessionService).startForeground(
-                        notificationId,
-                        notification.build()
-                    )
-                } else {
-                    (context as MediaSessionService).stopForeground(false)
-                }
-            }
-
             override fun onNotificationCancelled(
                 notificationId: Int,
                 dismissedByUser: Boolean
             ) {
                 (context as MediaSessionService).stopForeground(true)
+            }
+
+            override fun onNotificationPosted(
+                notificationId: Int,
+                notification: Notification,
+                ongoing: Boolean
+            ) {
+                if (ongoing) {
+                    (context as MediaSessionService).startForeground(
+                        notificationId,
+                        notification
+                    )
+                } else {
+                    (context as MediaSessionService).stopForeground(false)
+                }
             }
         })
         .build().apply {

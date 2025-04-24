@@ -3,7 +3,6 @@ package com.humblebeeai.auralis.media
 import android.content.ContentUris
 import android.content.Context
 import android.provider.MediaStore
-import android.media.MediaMetadata.METADATA_KEY_LYRICS
 import com.humblebeeai.auralis.data.entity.Song
 
 object MediaScanner {

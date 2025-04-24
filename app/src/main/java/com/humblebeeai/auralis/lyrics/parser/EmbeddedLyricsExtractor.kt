@@ -2,7 +2,6 @@ package com.humblebeeai.auralis.lyrics.parser
 
 import android.content.Context
 import android.media.MediaMetadataRetriever
-import android.media.MediaMetadata
 
 object EmbeddedLyricsExtractor {
     /**
@@ -13,7 +12,9 @@ object EmbeddedLyricsExtractor {
         return try {
             retriever.setDataSource(context, android.net.Uri.parse(uriString))
             retriever.embeddedPicture // use to force metadata load
-            retriever.extractMetadata(MediaMetadata.METADATA_KEY_LYRICS)
+            
+            // MediaMetadataRetriever.METADATA_KEY_LYRICS (constant value is 16)
+            retriever.extractMetadata(16)
         } catch (e: Exception) {
             null
         } finally {

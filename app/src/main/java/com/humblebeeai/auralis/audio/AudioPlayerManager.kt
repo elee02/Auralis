@@ -2,8 +2,8 @@ package com.humblebeeai.auralis.audio
 
 import android.content.Context
 import android.net.Uri
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.ExoPlayer
 
 object AudioPlayerManager {
     private var exoPlayer: ExoPlayer? = null

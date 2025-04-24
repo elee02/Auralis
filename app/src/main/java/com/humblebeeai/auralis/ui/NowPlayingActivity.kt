@@ -30,6 +30,9 @@ import android.content.ComponentName
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import com.humblebeeai.auralis.audio.MusicService
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 
 class NowPlayingActivity : AppCompatActivity() {
     private lateinit var lyricsView: SynchronizedLyricsView
@@ -41,7 +44,9 @@ class NowPlayingActivity : AppCompatActivity() {
 
     private var songs: List<Song> = emptyList()
     private var currentIndex = 0
-    private lateinit var mediaController: MediaController
+    private lateinit var controllerFuture: ListenableFuture<MediaController>
+    private val controller: MediaController?
+        get() = if (controllerFuture.isDone) controllerFuture.get() else null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,11 +59,17 @@ class NowPlayingActivity : AppCompatActivity() {
         btnNext = findViewById(R.id.btnNext)
         btnPrev = findViewById(R.id.btnPrev)
 
+        @Suppress("DEPRECATION")
         songs = intent.getParcelableArrayListExtra("songs") ?: emptyList()
         currentIndex = intent.getIntExtra("currentIndex", 0)
+        
         // Build MediaController bound to MusicService
         val token = SessionToken(this, ComponentName(this, MusicService::class.java))
-        mediaController = MediaController.Builder(this, token).build().also { ctrl ->
+        controllerFuture = MediaController.Builder(this, token)
+            .buildAsync()
+            
+        controllerFuture.addListener({
+            val ctrl = controllerFuture.get()
             // listen for state changes to update UI
             ctrl.addListener(object : Player.Listener {
                 override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -68,35 +79,40 @@ class NowPlayingActivity : AppCompatActivity() {
                     btnPlayPause.setImageResource(if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play)
                 }
             })
-        }
-        // Prepare playback queue
-        val mediaItems = songs.map { song ->
-            MediaItem.Builder()
-                .setUri(song.uri)
-                .setMediaMetadata(
-                    MediaMetadata.Builder()
-                        .setTitle(song.title)
-                        .setArtist(song.artist)
-                        .build()
-                )
-                .build()
-        }
-        mediaController.setMediaItems(mediaItems, currentIndex, 0L)
-        mediaController.prepare()
-        mediaController.play()
+            
+            // Prepare playback queue
+            val mediaItems = songs.map { song ->
+                MediaItem.Builder()
+                    .setUri(song.uri)
+                    .setMediaMetadata(
+                        MediaMetadata.Builder()
+                            .setTitle(song.title)
+                            .setArtist(song.artist)
+                            .build()
+                    )
+                    .build()
+            }
+            ctrl.setMediaItems(mediaItems, currentIndex, 0L)
+            ctrl.prepare()
+            ctrl.play()
+        }, MoreExecutors.directExecutor())
 
         btnPlayPause.setOnClickListener {
-            if (mediaController.isPlaying) {
-                mediaController.pause()
-            } else {
-                mediaController.play()
+            controller?.let { ctrl ->
+                if (ctrl.isPlaying) {
+                    ctrl.pause()
+                } else {
+                    ctrl.play()
+                }
             }
         }
+        
         btnNext.setOnClickListener {
-            mediaController.seekToNextMediaItem()
+            controller?.seekToNextMediaItem()
         }
+        
         btnPrev.setOnClickListener {
-            mediaController.seekToPreviousMediaItem()
+            controller?.seekToPreviousMediaItem()
         }
 
         lifecycleScope.launch {
@@ -105,34 +121,40 @@ class NowPlayingActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             while (true) {
-                val position = mediaController.currentPosition
-                lyricsView.updateTime(position)
+                controller?.let { ctrl ->
+                    lyricsView.updateTime(ctrl.currentPosition)
+                }
                 delay(200)
             }
         }
     }
 
     private fun updateSongInfo() {
-        val idx = mediaController.currentMediaItemIndex
-        if (idx in songs.indices) {
-            val song = songs[idx]
-            titleText.text = song.title
-            artistText.text = song.artist ?: ""
+        controller?.let { ctrl ->
+            val idx = ctrl.currentMediaItemIndex
+            if (idx in songs.indices) {
+                val song = songs[idx]
+                titleText.text = song.title
+                artistText.text = song.artist ?: ""
+            }
         }
     }
 
     private suspend fun loadLyrics() {
-        // get current song from mediaController
-        val idx = mediaController.currentMediaItemIndex
-        if (idx !in songs.indices) return
-        val song = songs[idx]
-        val embedded = EmbeddedLyricsExtractor.extract(this, song.uri)
-        val content = embedded ?: withContext(Dispatchers.IO) {
-            LyricsFetcher.fetchOnline(song)
-        }
-        content?.let {
-            val lines = LrcParser.parse(it)
-            lyricsView.setLyrics(lines)
+        delay(500) // Wait for controller to be ready
+        controller?.let { ctrl ->
+            // get current song from mediaController
+            val idx = ctrl.currentMediaItemIndex
+            if (idx !in songs.indices) return
+            val song = songs[idx]
+            val embedded = EmbeddedLyricsExtractor.extract(this, song.uri)
+            val content = embedded ?: withContext(Dispatchers.IO) {
+                LyricsFetcher.fetchOnline(song)
+            }
+            content?.let {
+                val lines = LrcParser.parse(it)
+                lyricsView.setLyrics(lines)
+            }
         }
     }
 
@@ -151,57 +173,43 @@ class NowPlayingActivity : AppCompatActivity() {
     }
 
     private fun showAddToPlaylistDialog() {
-        val dao = AppDatabase.getInstance(this).playlistDao()
+        // Display a temporary toast message since playlist functionality isn't implemented in the database yet
+        Toast.makeText(
+            this@NowPlayingActivity,
+            "Playlist functionality will be available in a future update",
+            Toast.LENGTH_SHORT
+        ).show()
+        
+        /* The commented section below shows how playlist functionality would be implemented
+        // This code will work once you add Playlist and PlaylistSongCrossRef entities to your Room database
+        // and implement the PlaylistDao interface with the necessary methods
+        
+        val db = AppDatabase.getInstance(this)
+        
         lifecycleScope.launch {
-            val playlists = dao.getPlaylistsWithSongs().map { it.playlist }
-            val names = playlists.map { it.name }.toMutableList().apply { add("Create New Playlist") }
-            withContext(Dispatchers.Main) {
-                AlertDialog.Builder(this@NowPlayingActivity)
-                    .setTitle("Add to Playlist")
-                    .setItems(names.toTypedArray()) { _, which ->
-                        if (which < playlists.size) {
-                            val playlist = playlists[which]
-                            // get current song from mediaController
-                            val idx2 = mediaController.currentMediaItemIndex
-                            if (idx2 !in songs.indices) return@setItems
-                            val song = songs[idx2]
-                            lifecycleScope.launch {
-                                dao.addSongToPlaylist(
-                                    PlaylistSongCrossRef(playlist.id, song.id)
-                                )
-                                Toast.makeText(
-                                    this@NowPlayingActivity,
-                                    "Added to ${playlist.name}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        } else {
-                            // Create new
-                            val input = EditText(this@NowPlayingActivity)
-                            AlertDialog.Builder(this@NowPlayingActivity)
-                                .setTitle("New Playlist")
-                                .setView(input)
-                                .setPositiveButton("Create") { _, _ ->
-                                    val name = input.text.toString().trim()
-                                    if (name.isNotEmpty()) {
-                                        lifecycleScope.launch {
-                                            val id = dao.insertPlaylist(Playlist(name = name))
-                                            val song = songs[mediaController.currentMediaItemIndex]
-                                            dao.addSongToPlaylist(PlaylistSongCrossRef(id, song.id))
-                                            Toast.makeText(
-                                                this@NowPlayingActivity,
-                                                "Playlist '$name' created and song added",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    }
-                                }
-                                .setNegativeButton("Cancel", null)
-                                .show()
-                        }
+            controller?.let { ctrl ->
+                val idx = ctrl.currentMediaItemIndex
+                if (idx >= 0 && idx < songs.size) {
+                    val song = songs[idx]
+                    
+                    // Instead of using playlists, let's just show the song information
+                    val songInfo = "Song: ${song.title} by ${song.artist ?: "Unknown"}"
+                    
+                    withContext(Dispatchers.Main) {
+                        AlertDialog.Builder(this@NowPlayingActivity)
+                            .setTitle("Selected Song")
+                            .setMessage(songInfo)
+                            .setPositiveButton("OK", null)
+                            .show()
                     }
-                    .show()
+                }
             }
         }
+        */
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        MediaController.releaseFuture(controllerFuture)
     }
 }

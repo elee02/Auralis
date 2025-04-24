@@ -14,15 +14,20 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import android.content.ComponentName
 import android.view.KeyEvent
+import com.humblebeeai.auralis.audio.MusicService
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 
 class SleepTimerActivity : AppCompatActivity() {
+    private lateinit var controllerFuture: ListenableFuture<MediaController>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sleep_timer)
 
         // prepare MediaController to control playback
         val token = SessionToken(this, ComponentName(this, MusicService::class.java))
-        val mediaController = MediaController.Builder(this, token).build()
+        controllerFuture = MediaController.Builder(this, token).buildAsync()
 
         val rg = findViewById<RadioGroup>(R.id.rgDurations)
         val btnStart = findViewById<Button>(R.id.buttonStartTimer)
@@ -40,12 +45,23 @@ class SleepTimerActivity : AppCompatActivity() {
                 else -> 0
             }
             Toast.makeText(this, "Sleep timer set for $minutes minutes", Toast.LENGTH_SHORT).show()
+            
             lifecycleScope.launch {
                 delay(minutes * 60_000L)
-                mediaController.pause()
-                Toast.makeText(this@SleepTimerActivity, "Sleep timer ended", Toast.LENGTH_SHORT).show()
+                
+                if (controllerFuture.isDone) {
+                    val controller = controllerFuture.get()
+                    controller.pause()
+                    Toast.makeText(this@SleepTimerActivity, "Sleep timer ended", Toast.LENGTH_SHORT).show()
+                }
+                
                 finish()
             }
         }
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        MediaController.releaseFuture(controllerFuture)
     }
 }
