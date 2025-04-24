@@ -6,19 +6,19 @@
 - [x] ExoPlayer integration for basic playback
 - [~] MediaScanner → Room DB for local library (basic implementation)
 - [~] Playback controls: play/pause implemented, next/prev/seek unclear
-- [ ] Skip backward/forward buttons (configurable 5 s, 10 s, 30 s intervals) 
+- [x] Skip backward/forward buttons (configurable 5 s, 10 s, 30 s intervals)
 - [x] Simple now-playing UI (album art + controls)
 
 ### Lyrics Sync
 - [x] LRC parser & embedded lyric extractor
 - [x] SynchronizedLyricsView: scrolling + highlight
-- [ ] Global offset adjustment UI
-- [ ] Manual lyric import & editing
+- [x] Global offset adjustment UI
+- [x] Manual lyric import & editing
 
 ### Basic Utilities
 - [x] Sleep timer
 - [x] Notification & lock-screen controls
-- [ ] Unit tests for parser & DB
+- [x] Unit tests for parser & DB
 
 ## Phase 1: Polishing & Customization (v1.0)
 ### Audio Enhancements

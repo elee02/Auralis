@@ -3,6 +3,7 @@ package com.humblebeeai.auralis.audio
 import android.content.Context
 import android.net.Uri
 import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 
 object AudioPlayerManager {
@@ -35,6 +36,7 @@ object AudioPlayerManager {
     fun isPlaying(): Boolean = exoPlayer?.isPlaying ?: false
 
     /** Returns the current audio session ID, or 0 if uninitialized. */
+    @OptIn(UnstableApi::class)
     fun getAudioSessionId(): Int = exoPlayer?.audioSessionId ?: 0
 
     /**

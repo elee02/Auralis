@@ -7,7 +7,6 @@ class LrcParserTest {
 
     @Test
     fun testParseLrcFormat() {
-        // Sample LRC content
         val lrcContent = """
             [ti:Song Title]
             [ar:Artist Name]
@@ -16,19 +15,19 @@ class LrcParserTest {
             [00:05.20]This is the second line
             [00:10.50]This is the third line
         """.trimIndent()
-        
-        // Check if LrcParser can parse without crashing 
-        // (if implemented, it should return non-null result)
         val lyricsResult = LrcParser.parse(lrcContent)
-        
-        // This test just verifies that the parser exists and doesn't crash
-        // A complete implementation would check line count and timing
+        assertEquals(3, lyricsResult.size)
+        assertEquals(0, lyricsResult[0].timeMs)
+        assertEquals("This is the first line", lyricsResult[0].text)
+        assertEquals(5200, lyricsResult[1].timeMs)
+        assertEquals("This is the second line", lyricsResult[1].text)
+        assertEquals(10500, lyricsResult[2].timeMs)
+        assertEquals("This is the third line", lyricsResult[2].text)
     }
-    
+
     @Test
     fun testEmptyInput() {
-        // Verify that parser handles empty input gracefully
         val result = LrcParser.parse("")
-        // If implemented, it should return empty list or null, not crash
+        assertTrue(result.isEmpty())
     }
 }

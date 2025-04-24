@@ -41,6 +41,21 @@ class NowPlayingActivity : AppCompatActivity() {
     private lateinit var btnPlayPause: ImageButton
     private lateinit var btnNext: ImageButton
     private lateinit var btnPrev: ImageButton
+    private lateinit var btnSkipBack: ImageButton
+    private lateinit var btnSkipForward: ImageButton
+    private lateinit var btnOffsetMinus: android.widget.Button
+    private lateinit var btnOffsetPlus: android.widget.Button
+    private lateinit var textLyricsOffset: android.widget.TextView
+    private lateinit var btnImportEditLyrics: android.widget.Button
+    private var lyricsOffsetMs: Long = 0L
+    private val OFFSET_STEP_MS = 500L
+    private val OFFSET_MIN_MS = -10000L
+    private val OFFSET_MAX_MS = 10000L
+    private var currentLyricsRaw: String? = null
+
+    companion object {
+        private const val SKIP_INTERVAL_MS = 10_000L // 10 seconds, configurable
+    }
 
     private var songs: List<Song> = emptyList()
     private var currentIndex = 0
@@ -58,6 +73,15 @@ class NowPlayingActivity : AppCompatActivity() {
         btnPlayPause = findViewById(R.id.btnPlayPause)
         btnNext = findViewById(R.id.btnNext)
         btnPrev = findViewById(R.id.btnPrev)
+        btnSkipBack = findViewById(R.id.btnSkipBack)
+        btnSkipForward = findViewById(R.id.btnSkipForward)
+        btnOffsetMinus = findViewById(R.id.btnOffsetMinus)
+        btnOffsetPlus = findViewById(R.id.btnOffsetPlus)
+        textLyricsOffset = findViewById(R.id.textLyricsOffset)
+        btnImportEditLyrics = findViewById(R.id.btnImportEditLyrics)
+        btnImportEditLyrics.setOnClickListener {
+            showLyricsImportEditDialog()
+        }
 
         @Suppress("DEPRECATION")
         songs = intent.getParcelableArrayListExtra("songs") ?: emptyList()
@@ -115,6 +139,28 @@ class NowPlayingActivity : AppCompatActivity() {
             controller?.seekToPreviousMediaItem()
         }
 
+        btnSkipBack.setOnClickListener {
+            controller?.let { ctrl ->
+                val newPos = (ctrl.currentPosition - SKIP_INTERVAL_MS).coerceAtLeast(0L)
+                ctrl.seekTo(newPos)
+            }
+        }
+        btnSkipForward.setOnClickListener {
+            controller?.let { ctrl ->
+                val duration = ctrl.duration.takeIf { it > 0 } ?: Long.MAX_VALUE
+                val newPos = (ctrl.currentPosition + SKIP_INTERVAL_MS).coerceAtMost(duration)
+                ctrl.seekTo(newPos)
+            }
+        }
+
+        btnOffsetMinus.setOnClickListener {
+            adjustGlobalOffset(-OFFSET_STEP_MS)
+        }
+        btnOffsetPlus.setOnClickListener {
+            adjustGlobalOffset(OFFSET_STEP_MS)
+        }
+        updateLyricsOffsetText()
+
         lifecycleScope.launch {
             loadLyrics()
         }
@@ -122,7 +168,7 @@ class NowPlayingActivity : AppCompatActivity() {
         lifecycleScope.launch {
             while (true) {
                 controller?.let { ctrl ->
-                    lyricsView.updateTime(ctrl.currentPosition)
+                    lyricsView.updateTime(ctrl.currentPosition + lyricsOffsetMs)
                 }
                 delay(200)
             }
@@ -152,10 +198,37 @@ class NowPlayingActivity : AppCompatActivity() {
                 LyricsFetcher.fetchOnline(song)
             }
             content?.let {
+                currentLyricsRaw = it
                 val lines = LrcParser.parse(it)
                 lyricsView.setLyrics(lines)
             }
         }
+    }
+
+    private fun adjustGlobalOffset(deltaMs: Long) {
+        lyricsOffsetMs = (lyricsOffsetMs + deltaMs).coerceIn(OFFSET_MIN_MS, OFFSET_MAX_MS)
+        updateLyricsOffsetText()
+    }
+
+    private fun updateLyricsOffsetText() {
+        textLyricsOffset.text = "Offset: ${lyricsOffsetMs} ms"
+    }
+
+    private fun showLyricsImportEditDialog() {
+        val editText = EditText(this)
+        editText.setText(currentLyricsRaw ?: "")
+        AlertDialog.Builder(this)
+            .setTitle("Import or Edit Lyrics")
+            .setMessage("Paste LRC or plain lyrics below:")
+            .setView(editText)
+            .setPositiveButton("Save") { _, _ ->
+                val input = editText.text.toString()
+                currentLyricsRaw = input
+                val lines = LrcParser.parse(input)
+                lyricsView.setLyrics(lines)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

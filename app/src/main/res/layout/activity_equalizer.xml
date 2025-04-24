@@ -22,6 +22,40 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp" />
 
+        <TextView
+            android:id="@+id/textBandCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Band count: "
+            android:textStyle="italic"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/textPresetName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Current preset: "
+            android:textStyle="italic"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+            <Button
+                android:id="@+id/btnResetEq"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reset" />
+            <Button
+                android:id="@+id/btnSavePreset"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Save as Preset"
+                android:layout_marginLeft="16dp" />
+        </LinearLayout>
+
         <!-- Frequency bands SeekBars will be added dynamically -->
 
     </LinearLayout>

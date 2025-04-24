@@ -12,7 +12,7 @@ android {
     defaultConfig {
         applicationId "com.humblebeeai.auralis"
         minSdk 26
-        targetSdk 31
+        targetSdk 33
         versionCode 1
         versionName "1.0"
     }
@@ -31,6 +31,9 @@ android {
                 java.srcDirs("src/test/java")
             }
         }
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {

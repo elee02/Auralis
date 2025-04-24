@@ -28,11 +28,55 @@
         android:background="@android:color/transparent" />
 
     <LinearLayout
+        android:id="@+id/lyricsOffsetControls"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
         android:paddingTop="8dp">
+
+        <Button
+            android:id="@+id/btnOffsetMinus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="-0.5s" />
+
+        <TextView
+            android:id="@+id/textLyricsOffset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Offset: 0 ms"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/btnOffsetPlus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+0.5s" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnImportEditLyrics"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Import/Edit Lyrics"
+        android:layout_marginTop="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:paddingTop="8dp">
+
+        <ImageButton
+            android:id="@+id/btnSkipBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_replay_10"
+            android:contentDescription="Skip Backward" />
 
         <ImageButton
             android:id="@+id/btnPrev"
@@ -55,6 +99,13 @@
             android:layout_height="wrap_content"
             android:src="@drawable/ic_skip_next"
             android:contentDescription="Next" />
+
+        <ImageButton
+            android:id="@+id/btnSkipForward"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_forward_10"
+            android:contentDescription="Skip Forward" />
 
     </LinearLayout>
 
