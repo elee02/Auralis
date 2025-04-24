@@ -31,3 +31,12 @@ google-services.json
 
 # Android Profiling
 *.hprof
+/local.properties
+/.gradle
+/app/build
+
+.kotlin/
+.gitignore
+LICENSE
+app.txt
+.git
