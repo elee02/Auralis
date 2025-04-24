@@ -32,6 +32,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var debugTextView: TextView
     private lateinit var recyclerView: RecyclerView
     
+    // Pick the right permission for the current OS level
+    private val audioPermission: String
+        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_AUDIO
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -44,23 +52,20 @@ class MainActivity : AppCompatActivity() {
         // First update the debug text
         debugTextView.text = "Checking permissions..."
         
-        // Check for the appropriate permission based on API level
-        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            Manifest.permission.READ_MEDIA_AUDIO
-        } else {
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        }
-        
-        if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED) {
-            debugTextView.text = "Permission granted, scanning music..."
-            loadSongs()
-        } else {
+        checkAudioPermissionAndLoad()
+    }
+    
+    private fun checkAudioPermissionAndLoad() {
+        if (ContextCompat.checkSelfPermission(this, audioPermission) != PackageManager.PERMISSION_GRANTED) {
             debugTextView.text = "Requesting permission..."
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(permission),
+                arrayOf(audioPermission),
                 REQUEST_AUDIO_PERMISSION
             )
+        } else {
+            debugTextView.text = "Permission granted, scanning music..."
+            loadSongs()
         }
     }
     

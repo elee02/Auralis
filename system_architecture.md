@@ -17,7 +17,15 @@ A modular, event-driven design separates audio, data, lyrics, and UI layers—ma
 
 ## 2. Core Modules
 
-### 2.1 UI Layer
+### 2.1 Core Technologies
+- **Android SDK**: Primary development platform
+- **Kotlin**: Main programming language
+- **Kotlin & Java**: Languages used for business logic, services, and UI
+- **ExoPlayer**: Audio playback engine
+- **Room Database**: Local storage for media metadata
+- **Retrofit**: Network operations for lyrics fetching
+
+### 2.2 UI Layer
 - Jetpack Compose screens & widgets
 - Theme & layout engine driven by user prefs
 - SynchronizedLyricsView component for live highlight & scroll
@@ -26,7 +34,7 @@ A modular, event-driven design separates audio, data, lyrics, and UI layers—ma
 - SkipButtonsComponent: renders “–X s/+X s” buttons, wired to player.seekTo(current –/+ X * 1000)
 
 
-### 2.2 Player Layer
+### 2.3 Player Layer
 - **ExoPlayer** core with:
   - Gapless/ crossfade extension
   - Playback speed control (audio processor)
@@ -35,7 +43,7 @@ A modular, event-driven design separates audio, data, lyrics, and UI layers—ma
   - Handles lock-screen & widget events
   - Manages notification through PlayerNotificationManager
 
-### 2.3 Data & Lyrics Layer
+### 2.4 Data & Lyrics Layer
 - **Room Database**  
   - Entities: Song, Playlist, LyricsEdit  
   - DAOs for fast queries and incremental updates

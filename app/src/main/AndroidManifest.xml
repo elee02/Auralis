@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     
-    <!-- For API 32 and below -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
-                     android:maxSdkVersion="32" />
+    <!-- Grant READ_EXTERNAL_STORAGE only up through API 32 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+                        android:maxSdkVersion="32"/>
                      
-    <!-- For API 33+ (Android 13+) -->
-    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <!-- On Android 13+ (API 33+), use the new media-specific permission -->
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
 
 
     <application
