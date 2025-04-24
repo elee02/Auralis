@@ -1,56 +1,93 @@
-# Android Music Player with Lyrics Synchronization
+# Auralis: Android Music Player with Lyrics Synchronization
 
-## Overview
-The Android Music Player is an advanced audio playback application with synchronized lyrics support, offering a Poweramp-like experience with additional focus on lyrics integration. The app supports local music playback with real-time lyrics display.
+## 1. Overview
+Auralis is a high-fidelity, offline-first Android music player that brings Poweramp-level audio quality and seamless, customizable lyrics alignment—all without paid third-party APIs. Enjoy local playback, manual and automatic lyric sync, and a fully themeable UI for a premium yet efficient experience.
 
-## Key Features
+## 2. Key Features
 
-- **High-Quality Audio Playback**: Supports MP3, FLAC, AAC, WAV, and more
-- **Lyrics Synchronization**: Displays lyrics in perfect sync with music
-- **Multiple Lyrics Sources**: Embedded, local LRC files, and online databases
-- **Customizable Interface**: Themes, colors, and layout options
-- **Advanced Audio Controls**: Equalizer, bass boost, and playback speed
+- **Audio Playback**
+  - Formats: MP3, FLAC, AAC, WAV, OGG, and more
+  - Gapless playback, crossfade, replay gain support
+  - Built-in 10-band equalizer with bass boost and virtualizer
+  - Variable playback speed (0.5×–2.0×) with pitch correction
 
-## System Requirements
+- **Lyrics Synchronization**
+  - **Automatic**: Parses local LRC/txt files and embedded lyrics
+  - **Manual Adjustment**: Long-press any line to nudge timing; “Calibrate” mode for global offset
+  - **On-the-fly Editing**: Edit text or timestamps in-app
+  - **Fallback**: If no local lyrics, prompts user to paste or import LRC; no network required
 
-- Android 8.0 (Oreo) or higher
-- 50MB free storage space
-- Internet connection for lyrics fetching (optional)
+- **Customizable Interface**
+  - Theme engine: Light, Dark, AMOLED or user-defined color palettes
+  - Font selector and size slider for lyrics and UI
+  - Layout presets: Compact (focus on album art), Expanded (lyrics + controls side by side), Mini-player mode
+  - Widget and lock-screen art with adjustable opacity
 
-## Installation
+- **Library Management**
+  - Fast local scan with incremental updates
+  - Metadata editor: Artist, album, artwork override
+  - Smart playlists (recent, favorites, top-played)
+  - Cross-device export/import of library DB
 
-1. Download the APK from our website or Google Play Store
-2. Enable "Install from unknown sources" if needed
-3. Run the installer and follow prompts
-4. Grant necessary permissions when first launched
+- **Utilities**
+  - Sleep timer, alarm wake-up playlist
+  - Lock-screen controls & in-notification controls
+  - Headset & Bluetooth action mapping
+  - Battery-aware background mode
 
-## Usage Guide
+## 3. System Requirements
 
-### Basic Playback
-1. Open the app and browse your music library
-2. Select a song to begin playback
-3. Use on-screen controls to manage playback
+- Android 8.0 (Oreo) or above
+- ~50 MB free storage (plus your music)
+- No mandatory Internet; optional for optional artwork lookup (free image search)
 
-### Lyrics Features
-1. During playback, swipe up to view lyrics
-2. Tap on lyrics to seek to that position
-3. Long-press lyrics to adjust synchronization
+## 4. Installation
 
-### Library Management
-1. Swipe from left to access library views
-2. Create playlists by selecting "New Playlist"
-3. Use search function to find specific tracks
+1. Download from Google Play or our GitHub Releases.
+2. Grant media-read permissions on first launch.
+3. (Optional) Enable “Artwork Lookup” to fetch covers from free public domain sources.
 
-### Settings
-1. Access settings from the navigation drawer
-2. Adjust audio, display, and lyrics preferences
-3. Enable dark mode for nighttime use
+## 5. Usage Guide
 
-## Technical Components
+### 5.1. Browsing & Playback
+1. **Library**: Tap menu → Library; use filters or search.
+2. **Play**: Tap a track to start.
+3. **Controls**: Swipe up on mini-player to reveal full controls (seek bar, EQ, speed).
 
-### Audio Playback
+### 5.2. Lyrics
+1. Swipe lyrics pane up/down to show/hide.
+2. **Sync**:  
+   - **Auto**: App reads local LRC or embedded lyrics.  
+   - **Manual**: Long-press a line → “Adjust time” → fine‐tune offset.
+3. **Edit**: Tap “✎” to edit text or timestamps.
+4. **Import**: From lyrics pane menu → “Import LRC file” or paste raw lyrics.
+
+### 5.3. Customization
+1. Menu → Settings → Appearance:
+   - Choose theme, accent colors, font family & size.
+2. Menu → Settings → Player Layout:
+   - Select Compact/Expanded/Mini modes.
+3. Widgets: Home-screen → long-press → Widgets → Auralis
+
+## 6. Technical Components
+
+- **Audio Engine**: ExoPlayer with custom gapless & crossfade modules
+- **Data Layer**: Room database stores media metadata, playback history, user edits
+- **Lyrics Engine**: 
+  - LrcParser: parses `[mm:ss.xx] line` into timestamped list
+  - SynchronizedLyricsView: highlights and scrolls current line
+- **UI Layer**: Jetpack Compose for dynamic theming and lightweight rendering
+- **Background Services**: MediaSessionService for lock-screen, notification, and widget controls
+
 ```kotlin
-val exoPlayer = ExoPlayer.Builder(context).build()
-exoPlayer.setMediaItem(MediaItem.fromUri("content://media/audio/123"))
-exoPlayer.prepare()
-exoPlayer.play()
+// Example: Alpine-style manual offset calibration
+fun adjustGlobalOffset(deltaMs: Long) {
+    lyricsOffsetMs = (lyricsOffsetMs + deltaMs).coerceIn(-10_000, 10_000)
+}
+```
+
+## 7. Troubleshooting & Tips
+
+- **No lyrics?** Use manual import or paste.
+- **Laggy UI?** Disable “Realtime visualizer” in settings.
+- **Battery drain?** Enable “Battery saver mode” to pause visualizer and lower thread priority.

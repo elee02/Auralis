@@ -1,54 +1,63 @@
-# Android Music Player Development Tasks
+# Auralis Development Roadmap
 
-## Project Setup
-- [x] Scaffold Android project structure (create app/, src/, package folders, Gradle files)
+## Phase 0: MVP (v0.1)
+### Setup & Core
+- [x] Project scaffold: modules, Gradle, manifest
+- [x] ExoPlayer integration for basic playback
+- [x] MediaScanner → Room DB for local library
+- [x] Playback controls: play/pause/next/prev, seek bar 
+- [ ] Skip backward/forward buttons (configurable 5 s, 10 s, 30 s intervals) 
+- [x] Simple now-playing UI (album art + controls)
 
+### Lyrics Sync
+- [x] LRC parser & embedded lyric extractor
+- [x] SynchronizedLyricsView: scrolling + highlight
+- [x] Global offset adjustment UI
+- [x] Manual lyric import & editing
 
-## Core Functionality
-- [x] Implement basic audio playback with ExoPlayer
-- [x] Create media scanning functionality
-- [x] Build music library database structure
-- [x] Implement play/pause/next/previous controls
+### Basic Utilities
+- [x] Sleep timer
+- [x] Notification & lock-screen controls
+- [x] Unit tests for parser & DB
 
-## Media3 Migration
-- [x] Replace legacy `androidx.media:media` and `media2` with Media3 dependencies
-- [x] Migrate MusicService to `MediaSessionService` (Media3)
-- [x] Migrate NowPlayingActivity and SleepTimerActivity to `MediaController` APIs
-- [x] Remove legacy `PlaybackController` and `AudioPlayerManager`
-- [x] Integrate `PlayerNotificationManager` for playback notifications
-- [x] Update AppWidgetProvider to use MediaController
+## Phase 1: Polishing & Customization (v1.0)
+### Audio Enhancements
+- [ ] 10-band equalizer + presets
+- [ ] Crossfade, gapless playback
+- [ ] Variable speed + pitch correction
 
-## Lyrics Synchronization
-- [x] Develop LRC file parser
-- [x] Create embedded lyrics extractor
-- [x] Implement online lyrics fetching
-- [x] Build real-time lyrics display
-- [x] Add lyrics scrolling and highlighting
+### UI & Theming
+- [ ] Jetpack Compose migration for all screens
+- [ ] Theme engine: Light/Dark/Amoled + custom accents
+- [ ] Font family & size selectors
+- [ ] Layout presets: Compact, Expanded, Mini
+- [ ] Waveform visualizer & scrubber on the playback bar
 
-## User Interface
-- [x] Design now playing screen
-- [x] Create library browser interface
-- [x] Implement playback controls overlay
-- [x] Build settings and equalizer UI
-- [ ] Add theme customization options (postponed until MVP v0)
+### Library & Playlists
+- [ ] Metadata editor (tags, artwork override)
+- [ ] Smart playlists: recent, favorites, top played
+- [ ] Export/import library DB
 
-## Advanced Features
-- [x] Implement equalizer with presets
-- [x] Add sleep timer functionality
-- [x] Create playlist management
-- [x] Develop widget support
-- [ ] Implement Android Auto integration (postponed)
+### Performance & Testing
+- [ ] Incremental media scan optimization
+- [ ] Battery-aware “low-power mode”
+- [ ] Instrumentation tests for UI & lifecycle
+- [ ] Performance profiling (CPU, memory, battery)
 
-## Testing and Optimization
-- [x] Add unit tests for LRC parser
-- [ ] Test with various audio formats
-- [ ] Optimize media scanning performance
-- [x] Ensure smooth lyrics synchronization
-- [ ] Test battery consumption
-- [ ] Gather user feedback for improvements
+## Phase 2: Advanced & Extensibility (v2.0+)
+### Premium-Tier Features
+- [ ] Plugin API for visualizers & themes
+- [ ] Automatic artwork lookup (free public domain)
+- [ ] Live lyric search (offline word-match)
+- [ ] Widget configuration presets
 
-## Release Preparation
-- [ ] Create app icon and assets
-- [ ] Write user documentation
-- [ ] Set up beta testing program
-- [ ] Prepare for Google Play Store submission
+### Integrations (Optional/Efficiency-Driven)
+- [ ] Wear OS companion (defer if resource-heavy)
+- [ ] Android Auto support (deferred if impacts APK size)
+- [ ] Backup/Restore settings (local file only)
+
+### Release Prep
+- [ ] App icon, promo graphics & store listing
+- [ ] Complete user documentation
+- [ ] Beta testing & feedback collection
+- [ ] Final Play Store compliance checks

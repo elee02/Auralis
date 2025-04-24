@@ -1,107 +1,78 @@
-# System Architecture for Android Music Player with Lyrics Synchronization
+# System Architecture for Auralis
 
-## Overview
-The Android Music Player is a Poweramp-like application with advanced lyrics synchronization capabilities. The system will provide seamless music playback with real-time lyrics alignment, offline support, and a customizable user interface.
+## 1. Architecture Overview
+A modular, event-driven design separates audio, data, lyrics, and UI layers—maximizing performance, offline capability, and extensibility without paid services.
 
-## System Components
+```
+┌──────────────────┐     ┌──────────────────┐     ┌────────────────────┐
+│   UI Layer       │◀──▶│  Player Layer    │◀──▶│  Data & Lyrics     │
+│ (Compose Views,  │     │ (ExoPlayer core) │     │ Layer (Room DB,    │
+│  Theme Engine)   │     │                  │     │  LrcParser)        │
+└──────────────────┘     └──────────────────┘     └────────────────────┘
+        ▲                         ▲                          ▲
+        │                         │                          │
+        ▼                         ▼                          ▼
+   Settings     ─────────▶   MediaSession   ─────▶   On-disk LRC, edits
+```
 
-### 1. Audio Playback Module
-- **Audio Engine**
-  - Handles audio decoding and playback
-  - Supports various audio formats (MP3, FLAC, AAC, WAV)
-  - Manages audio focus and interruptions
-  - Implements equalizer and audio effects
+## 2. Core Modules
 
-- **Playback Controller**
-  - Manages play/pause/next/previous functionality
-  - Handles playlists and queues
-  - Maintains playback state persistence
+### 2.1 UI Layer
+- Jetpack Compose screens & widgets
+- Theme & layout engine driven by user prefs
+- SynchronizedLyricsView component for live highlight & scroll
+- WaveformSeekBar: renders pre-computed audio waveform amplitudes; handles touch-to-seek
+- WaveformSeekBar (for music)
+- SkipButtonsComponent: renders “–X s/+X s” buttons, wired to player.seekTo(current –/+ X * 1000)
 
-### 2. Media Management Module
-- **Media Scanner**
-  - Scans device storage for audio files
-  - Builds and maintains media library
-  - Handles metadata extraction (ID3 tags)
 
-- **Library Organizer**
-  - Categorizes music by artist, album, genre
-  - Implements search functionality
-  - Manages user-created playlists
+### 2.2 Player Layer
+- **ExoPlayer** core with:
+  - Gapless/ crossfade extension
+  - Playback speed control (audio processor)
+  - Equalizer & audio effects via Android AudioFX
+- **MediaSessionService**
+  - Handles lock-screen & widget events
+  - Manages notification through PlayerNotificationManager
 
-### 3. Lyrics Synchronization Module
-- **Lyrics Parser**
-  - Supports LRC and synchronized text formats
-  - Handles embedded lyrics in audio files
-  - Parses timestamped lyrics files
+### 2.3 Data & Lyrics Layer
+- **Room Database**  
+  - Entities: Song, Playlist, LyricsEdit  
+  - DAOs for fast queries and incremental updates
+- **Lyrics Engine**  
+  - **Parser**: LrcParser for `[mm:ss.xx]→text`
+  - **Extractor**: embedded lyrics via MediaMetadataRetriever
+  - **Cache**: local edits stored in DB; no network dependency
 
-- **Lyrics Fetcher**
-  - Connects to online lyrics databases
-  - Implements local lyrics cache
-  - Handles lyrics search and matching
+## 3. Data Flow
 
-- **Lyrics Renderer**
-  - Displays synchronized lyrics in real-time
-  - Implements scrolling and highlighting
-  - Provides customization options
+1. **Startup**
+   - Read user preferences (theme, offsets)
+   - Initialize MediaSession & ExoPlayer
+   - Load last-played track & lyrics
 
-### 4. User Interface Module
-- **Now Playing Screen**
-  - Displays album art and playback controls
-  - Shows synchronized lyrics view
-  - Implements visualizations
+2. **Library Scan**
+   - MediaScanner queries MediaStore → builds/updates Room tables
+   - Emits events for UI to refresh
 
-- **Library Browser**
-  - Provides navigation through music collection
-  - Implements list and grid views
-  - Supports sorting and filtering
+3. **Playback**
+   - User selects a track → PlayerLayer prepares media item
+   - Lyrics Engine retrieves parsed lines + global offset
+   - UI subscribes to playback position → highlights appropriate lyric line
 
-- **Settings Interface**
-  - Manages player configuration
-  - Controls equalizer settings
-  - Handles theme customization
+4. **User Actions**
+   - Seek / skip → PlayerLayer updates position
+   - Adjust offset / edit lyric → Lyrics DB update → UI reloads from DB
 
-## Data Flow
+## 4. Performance & Efficiency
 
-1. **Initialization**
-   - Media scanner builds library
-   - Audio engine initializes
-   - UI loads last session state
+- **Lazy Loading**: Only parse lyrics when user opens lyrics pane
+- **Batch Scans**: Incremental media updates; avoid full rescans
+- **Background Threads**: Off-UI threading for DB and parsing
+- **Battery Saver**: Throttle updates to 10 Hz when low battery
 
-2. **Playback Flow**
-   - User selects track to play
-   - System checks for local lyrics
-   - Fetches lyrics if not available locally
-   - Audio playback begins with synchronized lyrics
+## 5. Extensibility
 
-3. **User Interaction**
-   - Playback controls affect audio engine
-   - UI updates reflect playback state
-   - Lyrics scroll in sync with playback
-
-## Technical Implementation
-
-### Core Technologies
-- **Android SDK**: Primary development platform
-- **Kotlin**: Main programming language
-- **ExoPlayer**: Audio playback engine
-- **Room Database**: Local storage for media metadata
-- **Retrofit**: Network operations for lyrics fetching
-
-### Key Features
-- Real-time lyrics synchronization
-- Background audio playback
-- Customizable equalizer
-- Dark/light theme support
-- Offline playback capability
-
-### Performance Considerations
-- Efficient media scanning with background threading
-- Lyrics pre-loading for smooth playback
-- Memory management for large libraries
-- Battery optimization for background playback
-
-## Security and Privacy
-- Local storage only for user media
-- Optional anonymous lyrics fetching
-- No data collection without consent
-- Secure storage for user preferences
+- **Plugin API** (future): support add-ons for visualizers or theme packs
+- **Config-Driven**: JSON schema for layout presets and color palettes
+- **Test Coverage**: Unit tests for parser, DB migrations, and UI state
